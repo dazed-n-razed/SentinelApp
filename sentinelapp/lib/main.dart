@@ -247,19 +247,84 @@ DashboardScreen> {
     }
     _previousAlarm = alarm;
 
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
+    // Modern layout: alarm panel at top, stats grid below
+    return Column(
       children: [
-        _DashboardCard(title: 'Temperature', value: '$temp °C'),
-        _DashboardCard(title: 'Humidity', value: '$hum %'),
-        _DashboardCard(title: 'Gas Leak', value: gasStr),
-        _DashboardCard(title: 'Intruder Distance', value: '$dist cm'),
-        _DashboardCard(title: 'IR Activity', value: irStr),
-        _DashboardCard(title: 'Door', value: doorStr),
-        _DashboardCard(title: 'Alarm', value: alarmStr),
+        _AlarmPanel(alarm: alarm),
+        const SizedBox(height: 16),
+        Expanded(
+          child: GridView.count(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.2,
+            children: [
+              _DashboardCard(title: 'Temperature', value: '$temp °C'),
+              _DashboardCard(title: 'Humidity', value: '$hum %'),
+              _DashboardCard(title: 'Gas Leak', value: gasStr),
+              _DashboardCard(title: 'Intruder Distance', value: '$dist cm'),
+              _DashboardCard(title: 'IR Activity', value: irStr),
+              _DashboardCard(title: 'Door', value: doorStr),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+}
+
+class _AlarmPanel extends StatelessWidget {
+  final bool alarm;
+  const _AlarmPanel({required this.alarm});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = alarm ? Colors.redAccent : Colors.green;
+    final icon = alarm ? Icons.warning_amber_rounded : Icons.check_circle_outline;
+    final status = alarm ? 'ACTIVE' : 'Normal';
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.9), color.withOpacity(0.6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [BoxShadow(color: color.withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 4))],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: Colors.white.withOpacity(0.2),
+            child: Icon(icon, color: Colors.white, size: 30),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('ALARM', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(status, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+              ],
+            ),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.white.withOpacity(0.18), elevation: 0),
+            onPressed: () {
+              // quick action placeholder: open notifications
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+            },
+            icon: const Icon(Icons.arrow_forward, color: Colors.white),
+            label: const Text('View', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
   }
 }
